@@ -1,0 +1,74 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    scrollbar-width: none; /* Firefox */
+  }
+  ::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  body {
+    @apply bg-[#0B0F14] text-[#E5E7EB] m-0;
+  }
+}
+
+@layer components {
+  /* Canvas cursor */
+  .drawing-canvas {
+    cursor: crosshair;
+  }
+
+  /* Prism code block overrides */
+  pre[class*="language-"] {
+    @apply !m-0 !p-0 !bg-transparent;
+  }
+  code[class*="language-"] {
+    @apply !font-mono text-sm;
+  }
+
+  /* Shimmer loading button */
+  .btn-shimmer {
+    background: linear-gradient(
+      90deg,
+      #6366f1 0%,
+      #818cf8 40%,
+      #6366f1 80%
+    );
+    background-size: 200% auto;
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  /* Typing cursor blink */
+  .typing-cursor::after {
+    content: '|';
+    @apply animate-pulse text-indigo-400 ml-0.5;
+  }
+}
+
+/* Prism Tomorrow Night theme scoped to code panel */
+.token.comment,
+.token.block-comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #999;
+}
+.token.punctuation { color: #ccc; }
+.token.tag, .token.attr-name, .token.namespace, .token.deleted { color: #e2777a; }
+.token.function-name { color: #6196cc; }
+.token.boolean, .token.number, .token.function { color: #f08d49; }
+.token.property, .token.class-name, .token.constant, .token.symbol { color: #f8c555; }
+.token.selector, .token.important, .token.atrule, .token.keyword, .token.builtin { color: #cc99cd; }
+.token.string, .token.char, .token.attr-value, .token.regex, .token.variable { color: #7ec699; }
+.token.operator, .token.entity, .token.url { color: #67cdcc; }
+.token.inserted { color: green; }

@@ -1,0 +1,259 @@
+================================================================================
+PRD: Sketch to Functional Component
+Version: 1.0
+Date: 2026-04-18
+Author: Buildathon Team
+================================================================================
+
+--------------------------------------------------------------------------------
+1. OVERVIEW
+--------------------------------------------------------------------------------
+
+Product Name: Sketch2Comp
+Type: Browser-based AI-powered developer tool
+Tagline: Draw a UI wireframe, get a production-ready React component instantly.
+
+Sketch2Comp lets developers and designers sketch a rough UI wireframe on a
+canvas, then uses a vision AI model to detect UI elements and generate a
+matching React functional component with a live preview — all in the browser,
+no backend required.
+
+--------------------------------------------------------------------------------
+2. PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+
+Translating a rough UI idea into code is slow. Designers sketch wireframes,
+developers re-interpret them, and significant effort is wasted before a single
+component is written. There is no fast, zero-friction path from "I have an idea
+in my head" to "here is working React code."
+
+--------------------------------------------------------------------------------
+3. TARGET USERS
+--------------------------------------------------------------------------------
+
+Primary: Frontend developers who want to prototype components quickly.
+Secondary: Designers who want to see their wireframes become real UI.
+Tertiary: Buildathon / hackathon participants demoing rapid prototyping.
+
+--------------------------------------------------------------------------------
+4. GOALS
+--------------------------------------------------------------------------------
+
+- Allow a user to draw a freehand UI sketch on a canvas in the browser.
+- Send the sketch to a vision AI model and receive a React component.
+- Display the generated code with syntax highlighting.
+- Render a live preview of the generated component in an iframe sandbox.
+- Provide preset example sketches so judges/viewers can demo without drawing.
+- Complete the full draw-to-component loop in under 10 seconds.
+
+--------------------------------------------------------------------------------
+5. NON-GOALS (OUT OF SCOPE)
+--------------------------------------------------------------------------------
+
+- No user authentication or accounts.
+- No saving or history of past sketches.
+- No support for frameworks other than React.
+- No mobile-optimized experience.
+- No backend server (everything runs client-side or via direct API call).
+
+--------------------------------------------------------------------------------
+6. TECH STACK
+--------------------------------------------------------------------------------
+
+Frontend Framework : React 18 (via Vite)
+Styling            : Tailwind CSS (CDN) inside iframe preview; plain CSS for app
+Canvas Drawing     : HTML5 Canvas API (native)
+Vision AI          : OpenAI GPT-4o vision endpoint (or Claude claude-opus-4-6)
+Code Highlighting  : Prism.js (CDN)
+Live Preview       : HTML iframe with srcdoc (Tailwind CDN injected)
+Deployment         : Vercel or Netlify (static)
+
+API Call Pattern:
+  1. Export canvas as base64 PNG: canvas.toDataURL("image/png").split(",")[1]
+  2. POST to vision API with base64 image + system prompt
+  3. Parse response, extract JSX code block
+  4. Render in code panel + inject into iframe srcdoc
+
+--------------------------------------------------------------------------------
+7. CORE FEATURES
+--------------------------------------------------------------------------------
+
+FEATURE 1: Freehand Drawing Canvas
+  - Full-width HTML5 canvas on the left half of the screen
+  - Mouse and touch support (mousedown, mousemove, mouseup)
+  - Stroke color: dark gray (#1a1a1a), stroke width: 2px
+  - "Clear" button to reset canvas
+  - Canvas background: white (required for clean base64 export)
+
+FEATURE 2: AI Component Generation
+  - "Generate Component" primary CTA button below canvas
+  - On click: export canvas to base64, call vision API
+  - System prompt to send to vision API:
+      "You are a React component generator. Analyze this hand-drawn wireframe
+       image. Identify all UI elements (buttons, inputs, headers, cards, etc.).
+       Generate a clean, functional React component that matches the layout.
+       Use Tailwind CSS classes for styling. Return ONLY the JSX code inside
+       a ```jsx code block. No explanation. No imports needed."
+  - Loading state: spinner + "Analyzing sketch..." text while API call is in flight
+  - Error state: show friendly error message + retry button
+  - Fallback: if API call fails, render a hardcoded demo component (login form)
+
+FEATURE 3: Code Output Panel
+  - Right half of screen shows generated code
+  - Syntax highlighted with Prism.js (theme: tomorrow-night)
+  - Typing animation: render characters one by one at 8ms interval
+  - "Copy Code" button: copies raw code, shows checkmark for 2 seconds
+
+FEATURE 4: Live Preview
+  - Tab switcher above right panel: "Code" tab and "Preview" tab
+  - Preview tab renders generated JSX inside iframe using srcdoc
+  - iframe srcdoc injects: Tailwind CDN + React 18 CDN + ReactDOM CDN
+  - Wrap generated component and call ReactDOM.render into srcdoc
+  - iframe has sandbox="allow-scripts" attribute
+
+FEATURE 5: Preset Sketch Templates
+  - Row of 3 clickable thumbnail buttons below the canvas
+  - Thumbnails: "Login Form", "Dashboard Card", "Navigation Bar"
+  - Clicking a preset: loads a pre-drawn PNG onto the canvas and auto-triggers
+    generation (simulates drawing for demo purposes)
+  - Pre-drawn PNGs stored as base64 strings in a constants file
+
+--------------------------------------------------------------------------------
+8. UI LAYOUT
+--------------------------------------------------------------------------------
+
++---------------------------+---------------------------+
+|     HEADER                                            |
+|  Sketch2Comp   [subtitle]                             |
++---------------------------+---------------------------+
+|                           |  [Code] [Preview]  [Copy] |
+|     DRAWING CANVAS        |                           |
+|                           |  Generated code / preview |
+|                           |  panel                    |
+|                           |                           |
+|  [Clear]   [Generate -->] |                           |
++---------------------------+---------------------------+
+|  Preset: [Login Form] [Dashboard Card] [Nav Bar]      |
++-------------------------------------------------------+
+
+Responsive: single column on screens < 768px (canvas on top, output below).
+
+--------------------------------------------------------------------------------
+9. API INTEGRATION DETAILS
+--------------------------------------------------------------------------------
+
+Endpoint: https://api.openai.com/v1/chat/completions
+Model: gpt-4o
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer <VITE_OPENAI_API_KEY>
+
+Request body:
+{
+  "model": "gpt-4o",
+  "max_tokens": 1000,
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/png;base64,<BASE64_STRING>"
+          }
+        },
+        {
+          "type": "text",
+          "text": "<SYSTEM PROMPT from Feature 2 above>"
+        }
+      ]
+    }
+  ]
+}
+
+API key stored in: .env file as VITE_OPENAI_API_KEY
+Never commit API key to version control.
+
+--------------------------------------------------------------------------------
+10. FILE STRUCTURE
+--------------------------------------------------------------------------------
+
+sketch2comp/
+  src/
+    App.jsx              -- Main layout, state management
+    components/
+      Canvas.jsx         -- Drawing canvas + clear button
+      GenerateButton.jsx -- CTA button with loading state
+      CodePanel.jsx      -- Syntax highlighted code with typing animation
+      PreviewPanel.jsx   -- iframe live preview
+      PresetBar.jsx      -- Preset sketch thumbnails
+    constants/
+      presets.js         -- Base64-encoded preset PNG strings
+      fallback.js        -- Hardcoded fallback JSX component string
+    hooks/
+      useVisionAPI.js    -- API call logic, error handling, loading state
+    utils/
+      canvasExport.js    -- Canvas to base64 PNG utility
+      codeExtract.js     -- Parse JSX block from API response string
+  public/
+  .env                   -- VITE_OPENAI_API_KEY=<your-key>
+  .env.example           -- VITE_OPENAI_API_KEY=your_key_here
+  vite.config.js
+  package.json
+  README.md
+
+--------------------------------------------------------------------------------
+11. ERROR HANDLING
+--------------------------------------------------------------------------------
+
+- API timeout (>15s): show error "The AI took too long. Using demo output." and
+  render fallback component
+- API auth error (401): show "API key invalid. Check your .env file."
+- API quota error (429): show "Rate limited. Please wait a moment and retry."
+- Empty canvas on generate: show "Please draw something first!"
+- Network offline: detect navigator.onLine, show "No internet connection."
+
+--------------------------------------------------------------------------------
+12. DEMO SCRIPT (for buildathon presentation)
+--------------------------------------------------------------------------------
+
+Step 1: Open app. Show blank canvas.
+Step 2: Say "I'll draw a login form right now" — draw two input boxes and a button (10 seconds).
+Step 3: Click "Generate Component". Let typing animation run.
+Step 4: Say "Here's the live preview" — click Preview tab.
+Step 5: Show rendered login form in preview panel.
+Step 6 (optional): Click a preset, show it works without drawing too.
+
+Total demo time: ~90 seconds.
+
+--------------------------------------------------------------------------------
+13. SUCCESS CRITERIA
+--------------------------------------------------------------------------------
+
+- User can draw on canvas and receive a React component within 10 seconds.
+- Generated component renders without errors in the live preview iframe.
+- Preset templates work even if API is unavailable (fallback mode).
+- App deploys and loads on Vercel with no build errors.
+- Demo can be completed end-to-end in under 2 minutes.
+
+--------------------------------------------------------------------------------
+14. RISKS AND MITIGATIONS
+--------------------------------------------------------------------------------
+
+Risk: Vision API is slow or unavailable during demo.
+Mitigation: Pre-warm API before presentation. Hardcoded fallback always ready.
+
+Risk: API key exposed in frontend bundle.
+Mitigation: Acceptable for buildathon. Note in README: "Replace with a proxy
+in production."
+
+Risk: Generated JSX has syntax errors that break iframe preview.
+Mitigation: Wrap iframe render in try/catch. Show "Preview unavailable" on
+error rather than crashing.
+
+Risk: Handwriting is too messy to interpret.
+Mitigation: Preset templates bypass this entirely. Demo with presets if needed.
+
+--------------------------------------------------------------------------------
+END OF PRD
+--------------------------------------------------------------------------------
