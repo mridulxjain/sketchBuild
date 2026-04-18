@@ -280,20 +280,16 @@ export default function App() {
               className={`
                 relative w-full py-3.5 px-5 rounded-xl font-semibold text-white text-[15px]
                 flex items-center justify-center gap-2 overflow-hidden shrink-0 mt-2
-                transition-all duration-300 active:scale-[0.98]
-                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#111827]
+                transition-none active:scale-100
+                focus:outline-none
                 ${isLoading
-                  ? 'btn-shimmer cursor-wait opacity-90'
-                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40'
+                  ? 'bg-indigo-600 cursor-wait opacity-90'
+                  : 'bg-indigo-600 hover:bg-indigo-500'
                 }
               `}
             >
               {isLoading ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
                   Processing...
                 </>
               ) : isRateLimited ? (
@@ -302,9 +298,6 @@ export default function App() {
                 <>Preparing...</>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
                   {activeInputMode === 'draw' ? 'Generate Component' : 'Generate from Image'}
                 </>
               )}
